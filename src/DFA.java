@@ -44,9 +44,9 @@ public class DFA extends FA{
 
     private int[] usedStates;
 
-    public int[] calcUsedStates() {
+    private void calcUsedStates() {
         if (usedStates != null)
-            return usedStates;
+            return;
         boolean[] isReachableFromStart = new boolean[states];
         calcReachable(s0, isReachableFromStart, func);
         List<Integer>[] inv = new List[states];
@@ -63,7 +63,7 @@ public class DFA extends FA{
         for (int s = 0; s < states; s++)
             if(isReachableFromStart[s] && isFinalReachable[s])
                 usedStatesList.add(s);
-        return usedStates = usedStatesList.stream().mapToInt(i->i).toArray();
+        usedStates = usedStatesList.stream().mapToInt(i->i).toArray();
     }
 
     private static final int HASH_FINAL = 123456789;
@@ -71,28 +71,50 @@ public class DFA extends FA{
     private static final long HASH_BASE = 12345;
     private static final long HASH_MOD = 1_000_000_007;
 
-    public int calcHash(int steps) {
+    private int[] hashes;
+
+    private void initHashes() {
         calcUsedStates();
-        int[] hashes = new int[states];
+        hashes = new int[states];
         for (int st = 0; st < states; st++)
             hashes[st] = fin[st] ? HASH_FINAL : HASH_EMPTY;
-        for (int i = 0; i < steps; i++) {
-            int[] newHashes = new int[states];
-            Arrays.fill(newHashes, HASH_EMPTY);
-            for (int st: usedStates)
-            {
-                int hash = hashes[st];
-                boolean is_empty = hash == HASH_EMPTY;
-                for (int to: func[st]) {
-                    int to_hash = to == -1 ? HASH_EMPTY : hashes[to];
-                    hash = (int)((HASH_BASE * hash + to_hash) % HASH_MOD);
-                    if (to_hash != HASH_EMPTY)
-                        is_empty = false;
-                }
-                newHashes[st] = is_empty ? HASH_EMPTY : hash;
+    }
+
+    private void recalcHashes() {
+        int[] newHashes = new int[states];
+        Arrays.fill(newHashes, HASH_EMPTY);
+        for (int st: usedStates)
+        {
+            int hash = hashes[st];
+            boolean is_empty = hash == HASH_EMPTY;
+            for (int to: func[st]) {
+                int to_hash = to == -1 ? HASH_EMPTY : hashes[to];
+                hash = (int)((HASH_BASE * hash + to_hash) % HASH_MOD);
+                if (to_hash != HASH_EMPTY)
+                    is_empty = false;
             }
-            hashes = newHashes;
+            newHashes[st] = is_empty ? HASH_EMPTY : hash;
         }
-        return hashes[s0];
+        hashes = newHashes;
+    }
+
+    public static boolean equivalent(DFA one, DFA two) {
+        one.initHashes();
+        two.initHashes();
+        int prevSize = -1;
+        for (int step = 1; ; step++) {
+            if (one.hashes[one.s0] != two.hashes[two.s0])
+                return false;
+            Set<Integer> set = new HashSet<>();
+            for (int h: one.hashes)
+                set.add(h);
+            for (int h: two.hashes)
+                set.add(h);
+            if (prevSize == set.size())
+                return true;
+            prevSize = set.size();
+            one.recalcHashes();
+            two.recalcHashes();
+        }
     }
 }

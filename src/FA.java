@@ -23,9 +23,6 @@ public abstract class FA {
     public abstract DFA toDFA();
 
     public static boolean equivalent(FA one, FA two) {
-        DFA oneD = one.toDFA();
-        DFA twoD = two.toDFA();
-        int steps = Math.max(oneD.calcUsedStates().length, twoD.calcUsedStates().length);
-        return oneD.calcHash(steps) == twoD.calcHash(steps);
+        return DFA.equivalent(one.toDFA(), two.toDFA());
     }
 }
