@@ -1,22 +1,28 @@
 import java.util.*;
 
 public class DFA extends FA{
-    public final int[][] func;
+
+    public int getFunction(int from, char ch) {
+        return function[from][ch - 'a'];
+    }
+    @Override
+    public boolean getFunction(int from, char ch, int to) {
+        return getFunction(from, ch) == to;
+    }
+    @Override
+    public void addFunction(int from, char ch, int to) {
+        function[from][ch - 'a'] = to;
+    }
+    @Override
+    public void delFunction(int from, char ch, int to) {
+        function[from][ch - 'a'] = -1;
+    }
 
     public DFA(int alphabet, int states, int s0) {
         super(alphabet, states, s0);
-        func = new int[states][alphabet];
-        for (int[] row: func)
-            Arrays.fill(row, -1);
     }
-
     public DFA(Scanner in) {
         super(in);
-        func = new int[states][alphabet];
-        for (int[] row: func)
-            Arrays.fill(row, -1);
-        while (in.hasNextInt())
-            func[in.nextInt()][in.next().charAt(0) - 'a'] = in.nextInt();
     }
 
     @Override
@@ -48,12 +54,12 @@ public class DFA extends FA{
         if (usedStates != null)
             return;
         boolean[] isReachableFromStart = new boolean[states];
-        calcReachable(s0, isReachableFromStart, func);
+        calcReachable(s0, isReachableFromStart, function);
         List<Integer>[] inv = new List[states];
         for (int s = 0; s < states; s++)
             inv[s] = new ArrayList<>();
         for (int s = 0; s < states; s++)
-            for (int to: func[s])
+            for (int to: function[s])
                 if (to != -1)
                     inv[to].add(s);
         boolean[] isFinalReachable = new boolean[states];
@@ -77,7 +83,7 @@ public class DFA extends FA{
         calcUsedStates();
         hashes = new int[states];
         for (int st = 0; st < states; st++)
-            hashes[st] = fin[st] ? HASH_FINAL : HASH_EMPTY;
+            hashes[st] = getFinal(st) ? HASH_FINAL : HASH_EMPTY;
     }
 
     private void recalcHashes() {
@@ -87,7 +93,7 @@ public class DFA extends FA{
         {
             int hash = hashes[st];
             boolean is_empty = hash == HASH_EMPTY;
-            for (int to: func[st]) {
+            for (int to: function[st]) {
                 int to_hash = to == -1 ? HASH_EMPTY : hashes[to];
                 hash = (int)((HASH_BASE * hash + to_hash) % HASH_MOD);
                 if (to_hash != HASH_EMPTY)
@@ -102,7 +108,7 @@ public class DFA extends FA{
         one.initHashes();
         two.initHashes();
         int prevSize = -1;
-        for (int step = 1; ; step++) {
+        while (true) {
             if (one.hashes[one.s0] != two.hashes[two.s0])
                 return false;
             Set<Integer> set = new HashSet<>();
