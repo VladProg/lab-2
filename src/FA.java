@@ -13,21 +13,18 @@ public abstract class FA {
     public void addFinal(int st) {
         fin[st] = true;
     }
-    public void delFinal(int st) {
-        fin[st] = true;
-    }
 
     protected final int[][] function;
+    protected abstract int[][] initFunction();
     public abstract boolean getFunction(int from, char ch, int to);
     public abstract void addFunction(int from, char ch, int to);
-    public abstract void delFunction(int from, char ch, int to);
 
     public FA(int alphabet, int states, int s0) {
         this.alphabet = alphabet;
         this.states = states;
         this.s0 = s0;
         fin = new boolean[states];
-        function = new int[states][alphabet];
+        function = initFunction();
     }
 
     public FA(Scanner in) {

@@ -2,6 +2,13 @@ import java.util.*;
 
 public class DFA extends FA{
 
+    @Override
+    public int[][] initFunction() {
+        int[][] func = new int[states][alphabet];
+        for (int[] row: func)
+            Arrays.fill(row, -1);
+        return func;
+    }
     public int getFunction(int from, char ch) {
         return function[from][ch - 'a'];
     }
@@ -11,11 +18,11 @@ public class DFA extends FA{
     }
     @Override
     public void addFunction(int from, char ch, int to) {
+        if (function[from][ch - 'a'] != to && function[from][ch - 'a'] != -1)
+            throw new IllegalArgumentException(String.format("Adding function (%d, %c) -> %d to DFA is impossible " +
+                    "because it has another function (%d, %c) -> %d",
+                    from, ch, to, from, ch, function[from][ch - 'a']));
         function[from][ch - 'a'] = to;
-    }
-    @Override
-    public void delFunction(int from, char ch, int to) {
-        function[from][ch - 'a'] = -1;
     }
 
     public DFA(int alphabet, int states, int s0) {

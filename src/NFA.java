@@ -1,3 +1,4 @@
+import java.util.Arrays;
 import java.util.Scanner;
 
 public class NFA extends FA{
@@ -8,10 +9,14 @@ public class NFA extends FA{
     private static int addBit(int value, int bit) {
         return value | (1 << bit);
     }
-    private static int delBit(int value, int bit) {
-        return value & ~(1 << bit);
-    }
 
+    @Override
+    public int[][] initFunction() {
+        int[][] func = new int[states][alphabet];
+        for (int[] row: func)
+            Arrays.fill(row, 0);
+        return func;
+    }
     @Override
     public boolean getFunction(int from, char ch, int to) {
         return getBit(function[from][ch - 'a'], to);
@@ -19,10 +24,6 @@ public class NFA extends FA{
     @Override
     public void addFunction(int from, char ch, int to) {
         function[from][ch - 'a'] = addBit(function[from][ch - 'a'], to);
-    }
-    @Override
-    public void delFunction(int from, char ch, int to) {
-        function[from][ch - 'a'] = delBit(function[from][ch - 'a'], to);
     }
 
     public NFA(int alphabet, int states, int s0) {
